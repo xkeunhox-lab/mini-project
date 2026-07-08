@@ -35,8 +35,9 @@ export default function ExerciseEntryForm({
       : DEFAULT_SETS.map((s) => ({ ...s }))
   );
 
-  function handleCountChange(raw: string) {
-    const count = Math.max(1, parseInt(raw, 10) || 1);
+  const [countText, setCountText] = useState(String(sets.length));
+
+  function applyCount(count: number) {
     setSets((prev) => {
       if (count < prev.length) return prev.slice(0, count);
       if (count > prev.length) {
@@ -51,18 +52,28 @@ export default function ExerciseEntryForm({
     });
   }
 
-  function handleSetFieldChange(
-    idx: number,
-    field: "weight" | "reps",
-    value: string
-  ) {
+  function handleCountChange(raw: string) {
+    setCountText(raw);
+    if (raw === "") return;
+    const parsed = parseInt(raw, 10);
+    if (Number.isNaN(parsed) || parsed < 1) return;
+    applyCount(parsed);
+  }
+
+  function handleCountBlur() {
+    const parsed = parseInt(countText, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+      const fallback = Math.max(1, sets.length);
+      setCountText(String(fallback));
+      applyCount(fallback);
+    } else {
+      setCountText(String(parsed));
+    }
+  }
+
+  function handleSetChange(idx: number, field: "weight" | "reps", value: number) {
     setSets((prev) =>
-      prev.map((s, i) => {
-        if (i !== idx) return s;
-        const parsed =
-          field === "weight" ? parseFloat(value) : parseInt(value, 10);
-        return { ...s, [field]: Number.isNaN(parsed) ? 0 : parsed };
-      })
+      prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s))
     );
   }
 
@@ -108,40 +119,22 @@ export default function ExerciseEntryForm({
         <input
           type="number"
           min={1}
-          value={sets.length}
+          value={countText}
           onChange={(e) => handleCountChange(e.target.value)}
+          onBlur={handleCountBlur}
           className="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2.5 text-sm text-neutral-900"
         />
       </div>
 
       <div className="space-y-2">
         {sets.map((set, idx) => (
-          <div key={idx} className="flex items-center gap-2">
-            <span className="min-w-[44px] text-xs text-neutral-600">
-              세트{idx + 1}
-            </span>
-            <input
-              type="number"
-              step={1.25}
-              min={0}
-              value={set.weight}
-              onChange={(e) =>
-                handleSetFieldChange(idx, "weight", e.target.value)
-              }
-              className="w-16 rounded-md border border-neutral-300 bg-neutral-100 px-2 py-1.5 text-sm text-neutral-900"
-            />
-            <span className="text-xs font-semibold text-neutral-600">kg</span>
-            <input
-              type="number"
-              min={0}
-              value={set.reps}
-              onChange={(e) =>
-                handleSetFieldChange(idx, "reps", e.target.value)
-              }
-              className="w-16 rounded-md border border-neutral-300 bg-neutral-100 px-2 py-1.5 text-sm text-neutral-900"
-            />
-            <span className="text-xs font-semibold text-neutral-600">회</span>
-          </div>
+          <SetRow
+            key={idx}
+            label={`세트${idx + 1}`}
+            set={set}
+            onWeightChange={(v) => handleSetChange(idx, "weight", v)}
+            onRepsChange={(v) => handleSetChange(idx, "reps", v)}
+          />
         ))}
       </div>
 
@@ -161,6 +154,74 @@ export default function ExerciseEntryForm({
           {confirmLabel}
         </button>
       </div>
+    </div>
+  );
+}
+
+function SetRow({
+  label,
+  set,
+  onWeightChange,
+  onRepsChange,
+}: {
+  label: string;
+  set: SetEntry;
+  onWeightChange: (value: number) => void;
+  onRepsChange: (value: number) => void;
+}) {
+  const [weightText, setWeightText] = useState(String(set.weight));
+  const [repsText, setRepsText] = useState(String(set.reps));
+
+  function handleWeightChange(raw: string) {
+    setWeightText(raw);
+    if (raw === "") return;
+    const parsed = parseFloat(raw);
+    if (!Number.isNaN(parsed)) onWeightChange(parsed);
+  }
+
+  function handleWeightBlur() {
+    const parsed = parseFloat(weightText);
+    if (weightText === "" || Number.isNaN(parsed)) {
+      setWeightText(String(set.weight));
+    }
+  }
+
+  function handleRepsChange(raw: string) {
+    setRepsText(raw);
+    if (raw === "") return;
+    const parsed = parseInt(raw, 10);
+    if (!Number.isNaN(parsed)) onRepsChange(parsed);
+  }
+
+  function handleRepsBlur() {
+    const parsed = parseInt(repsText, 10);
+    if (repsText === "" || Number.isNaN(parsed)) {
+      setRepsText(String(set.reps));
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="min-w-[44px] text-xs text-neutral-600">{label}</span>
+      <input
+        type="number"
+        step={1.25}
+        min={0}
+        value={weightText}
+        onChange={(e) => handleWeightChange(e.target.value)}
+        onBlur={handleWeightBlur}
+        className="w-16 rounded-md border border-neutral-300 bg-neutral-100 px-2 py-1.5 text-sm text-neutral-900"
+      />
+      <span className="text-xs font-semibold text-neutral-600">kg</span>
+      <input
+        type="number"
+        min={0}
+        value={repsText}
+        onChange={(e) => handleRepsChange(e.target.value)}
+        onBlur={handleRepsBlur}
+        className="w-16 rounded-md border border-neutral-300 bg-neutral-100 px-2 py-1.5 text-sm text-neutral-900"
+      />
+      <span className="text-xs font-semibold text-neutral-600">회</span>
     </div>
   );
 }
