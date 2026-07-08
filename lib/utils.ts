@@ -78,3 +78,25 @@ export function cloneExercisesResetCompleted(
     sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, completed: false })),
   }));
 }
+
+// Supabase 에러(PostgrestError 등)는 Error 인스턴스가 아니라 일반 객체라서
+// String(e)로 바꾸면 "[object Object]"가 된다. message/details/hint/code를 직접 뽑아서 사람이 읽을 수 있게 만든다.
+export function describeError(e: unknown): string {
+  if (e instanceof Error) return e.message;
+
+  if (e && typeof e === "object") {
+    const record = e as Record<string, unknown>;
+    const parts = [record.message, record.details, record.hint, record.code].filter(
+      (v): v is string => typeof v === "string" && v.length > 0
+    );
+    if (parts.length > 0) return parts.join(" · ");
+
+    try {
+      return JSON.stringify(e);
+    } catch {
+      // JSON.stringify가 실패하는 경우(순환 참조 등)는 폴백으로 String() 사용
+    }
+  }
+
+  return String(e);
+}
