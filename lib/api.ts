@@ -109,24 +109,3 @@ export async function deleteRecord(date: string): Promise<void> {
   const { error } = await supabase.from("records").delete().eq("date", date);
   if (error) throw error;
 }
-
-// ---- 누적 기록 횟수(app_stats) ----
-
-export async function fetchTotalCompletions(): Promise<number> {
-  const { data, error } = await supabase
-    .from("app_stats")
-    .select("total_completions")
-    .eq("id", 1)
-    .single();
-
-  if (error) throw error;
-  return (data?.total_completions as number | undefined) ?? 0;
-}
-
-// 기록 저장을 완료할 때마다 호출한다. 통계 증가는 저장 자체의 성패에 영향을 주지 않는
-// 부가 동작이므로, 호출부에서는 실패를 무시해도 안전하도록 별도로 try/catch를 감싸서 사용한다.
-export async function incrementCompletions(): Promise<number> {
-  const { data, error } = await supabase.rpc("increment_completions");
-  if (error) throw error;
-  return data as number;
-}
