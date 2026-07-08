@@ -56,8 +56,9 @@ export default function GrossRoutineApp() {
       } catch (e) {
         console.error(e);
         if (!cancelled) {
+          const detail = e instanceof Error ? e.message : String(e);
           setErrorMsg(
-            "데이터를 불러오지 못했습니다. Supabase 연결 정보(.env.local)와 스키마 설정을 확인해주세요."
+            `데이터를 불러오지 못했습니다. Supabase에 routines/records 테이블이 아직 생성되지 않았거나(database/schema.sql 미실행), 연결 설정이 올바르지 않을 수 있습니다.\n(상세: ${detail})`
           );
         }
       } finally {
@@ -242,7 +243,9 @@ export default function GrossRoutineApp() {
             불러오는 중...
           </div>
         ) : errorMsg ? (
-          <div className="py-20 text-center text-sm text-danger">{errorMsg}</div>
+          <div className="whitespace-pre-line px-4 py-20 text-center text-sm text-danger">
+            {errorMsg}
+          </div>
         ) : activeTab === "routines" ? (
           <RoutineList
             routines={routines}

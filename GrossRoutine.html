@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrossRoutine - 루틴 기반 운동 기록</title>
+  <style>
+    :root {
+      --primary: #18DB4E;
+      --primary-dark: #13A93C;
+      --success: #18DB4E;
+      --danger: #FF5A52;
+      --info: #2F86EB;
+      --surface: #171B10;
+      --surface-hover: #212615;
+      --gray-100: #0B0D08;
+      --gray-200: #1D2216;
+      --gray-300: #262B1D;
+      --gray-400: #3A4130;
+      --gray-500: #5B6350;
+      --gray-600: #98A187;
+      --gray-700: #C3CBB5;
+      --gray-900: #F4F6EE;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    input, select, textarea {
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      transition: border 0.2s;
+      font-family: inherit;
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: var(--gray-500);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(24, 219, 78, 0.18);
+    }
+
+    .app-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--surface);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(130% 170% at 50% -40%, #1C2410 0%, rgba(11, 13, 8, 0) 55%),
+        linear-gradient(180deg, #12150C 0%, #0B0D08 100%);
+      padding: 36px 20px 28px;
+      text-align: center;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0px, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 3px);
+      pointer-events: none;
+    }
+
+    .header-brand {
+      position: relative;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--primary);
+      text-shadow: 0 0 30px rgba(24, 219, 78, 0.35);
+      margin-bottom: 8px;
+    }
+
+    .header-subtitle {
+      position: relative;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .header-tagline {
+      position: relative;
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--surface);
+    }
+
+    .nav-tab {
+      flex: 1;
+      padding: 16px;
+      text-align: center;
+      border: none;
+      background: var(--surface);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .nav-tab:hover {
+      color: var(--gray-900);
+    }
+
+    .nav-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .content {
+      flex: 1;
+      padding: 24px 20px;
+      overflow-y: auto;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--gray-200);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--gray-900);
+    }
+
+    .form-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .form-group label {
+      display: block;
+      width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select {
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+    }
+
+    .input-group input {
+      flex: 1;
+    }
+
+    .input-unit {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-600);
+      min-width: 30px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--gray-100);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: var(--gray-300);
+      color: var(--gray-900);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-400);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: var(--gray-100);
+    }
+
+    .btn-success:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-info {
+      background: var(--info);
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: #226DC2;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-danger:hover {
+      background: #E13E35;
+    }
+
+    /* Routine Grid */
+    .routine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .routine-card {
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .routine-card.color-0 {
+      background: linear-gradient(135deg, #18DB4E 0%, #0FA83C 100%);
+      color: var(--gray-100);
+    }
+
+    .routine-card.color-1 {
+      background: linear-gradient(135deg, #2F86EB 0%, #1657B0 100%);
+    }
+
+    .routine-card.color-2 {
+      background: linear-gradient(135deg, #E23FA0 0%, #A01B6E 100%);
+    }
+
+    .routine-card.color-3 {
+      background: linear-gradient(135deg, #1FB8A6 0%, #0B7F72 100%);
+    }
+
+    .routine-card.color-4 {
+      background: linear-gradient(135deg, #FF6B35 0%, #C6431A 100%);
+    }
+
+    .routine-card.color-5 {
+      background: linear-gradient(135deg, #8B5CF6 0%, #5B21B6 100%);
+    }
+
+    .routine-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+    }
+
+    .routine-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .routine-exercises {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 12px;
+      max-height: 60px;
+      overflow-y: auto;
+    }
+
+    .routine-exercise-item {
+      margin-bottom: 4px;
+    }
+
+    .routine-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .routine-actions button {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .routine-actions button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .add-routine-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-100);
+      border: 2px dashed var(--gray-400);
+      border-radius: 12px;
+      padding: 40px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 150px;
+    }
+
+    .add-routine-card:hover {
+      border-color: var(--primary);
+      background: rgba(24, 219, 78, 0.06);
+    }
+
+    /* Calendar */
+    .calendar {
+      width: 100%;
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--gray-300);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: var(--surface);
+      color: var(--gray-900);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .calendar-header > div {
+      color: var(--primary);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .calendar-header button {
+      background: var(--gray-200);
+      color: var(--gray-900);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--gray-300);
+    }
+
+    .calendar-header button:hover {
+      background: var(--surface-hover);
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--gray-300);
+      padding: 1px;
+    }
+
+    .weekday {
+      background: var(--gray-100);
+      padding: 12px 8px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--gray-300);
+      padding: 1px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      background: var(--surface);
+      padding: 8px;
+      text-align: center;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    .calendar-day:hover {
+      background: var(--surface-hover);
+    }
+
+    .calendar-day.other-month {
+      color: var(--gray-500);
+      background: var(--gray-100);
+    }
+
+    .calendar-day.today {
+      background: rgba(24, 219, 78, 0.1);
+      border: 2px solid var(--primary);
+    }
+
+    .calendar-day-number {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .calendar-day-indicator {
+      font-size: 8px;
+      background: var(--success);
+      color: var(--gray-100);
+      border-radius: 2px;
+      padding: 1px 2px;
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+
+    .calendar-day-volume {
+      font-size: 8px;
+      color: var(--gray-600);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .calendar-routine-name {
+      font-size: 9px;
+      color: var(--gray-700);
+      background: var(--gray-100);
+      padding: 2px 4px;
+      border-radius: 2px;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .calendar-routine-delete {
+      flex-shrink: 0;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+
+    .calendar-routine-delete:hover {
+      opacity: 1;
+    }
+
+    .calendar-routine-name.color-0 {
+      background: #18DB4E;
+      color: var(--gray-100);
+    }
+
+    .calendar-routine-name.color-1 {
+      background: #2F86EB;
+      color: white;
+    }
+
+    .calendar-routine-name.color-2 {
+      background: #E23FA0;
+      color: white;
+    }
+
+    .calendar-routine-name.color-3 {
+      background: #1FB8A6;
+      color: white;
+    }
+
+    .calendar-routine-name.color-4 {
+      background: #FF6B35;
+      color: white;
+    }
+
+    .calendar-routine-name.color-5 {
+      background: #8B5CF6;
+      color: white;
+    }
+
+    /* Exercise Item */
+    .exercise-item {
+      background: var(--gray-100);
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .exercise-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .exercise-name {
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .exercise-delete {
+      background: var(--danger);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .exercise-delete:hover {
+      background: #E13E35;
+    }
+
+    .set-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .set-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .set-input-row input[type="number"] {
+      width: 60px;
+      padding: 6px;
+      font-size: 13px;
+    }
+
+    .set-check {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .set-label {
+      font-size: 12px;
+      color: var(--gray-600);
+      min-width: 50px;
+    }
+
+    .set-remove-btn {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 6px;
+      background: var(--gray-300);
+      color: var(--gray-900);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      border: none;
+    }
+
+    .set-remove-btn:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .set-add-btn {
+      margin-top: 8px;
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: var(--gray-200);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px dashed var(--gray-400);
+      cursor: pointer;
+    }
+
+    .set-add-btn:hover {
+      background: var(--surface-hover);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.72);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border: 1px solid var(--gray-200);
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--gray-300);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .exercise-list {
+      background: var(--gray-100);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .exercise-list-item {
+      background: var(--surface);
+      border: 1px solid var(--gray-200);
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .exercise-list-item:hover {
+      background: var(--surface-hover);
+    }
+
+    .exercise-list-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .exercise-list-info {
+      flex: 1;
+    }
+
+    .exercise-list-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .exercise-list-detail {
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+
+    .exercise-list-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .exercise-list-edit {
+      background: var(--info);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .exercise-list-edit:hover {
+      background: #226DC2;
+    }
+
+    .exercise-list-delete {
+      background: var(--danger);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .exercise-list-delete:hover {
+      background: #E13E35;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .routine-info-row {
+      background: var(--gray-100);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .routine-info-label {
+      font-size: 12px;
+      color: var(--gray-600);
+      font-weight: 600;
+    }
+
+    .routine-info-value {
+      font-size: 13px;
+      color: var(--gray-900);
+    }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .history-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .history-item:hover {
+      background: var(--surface-hover);
+    }
+
+    .history-item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .history-item-date {
+      font-weight: 700;
+      color: var(--gray-900);
+      font-size: 14px;
+    }
+
+    .history-item-exercises {
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+
+    .history-item-routine {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .history-item-routine.color-0 { background: #18DB4E; color: var(--gray-100); }
+    .history-item-routine.color-1 { background: #2F86EB; color: white; }
+    .history-item-routine.color-2 { background: #E23FA0; color: white; }
+    .history-item-routine.color-3 { background: #1FB8A6; color: white; }
+    .history-item-routine.color-4 { background: #FF6B35; color: white; }
+    .history-item-routine.color-5 { background: #8B5CF6; color: white; }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 16px 12px;
+      }
+
+      .routine-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+
+      .modal-content {
+        width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-brand">GrossRoutine</div>
+      <p class="header-subtitle">루틴 기반 운동 기록</p>
+      <p class="header-tagline">편리하게 기록하고 효율적으로 관리하기</p>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="main">📋 루틴 관리</button>
+      <button class="nav-tab" data-tab="calendar">📅 기록</button>
+    </div>
+
+    <div class="content">
+      <!-- Main Tab -->
+      <div class="tab-content active" id="main-tab">
+        <div class="card">
+          <div class="card-title">🏋️ 나만의 루틴</div>
+          <div class="routine-grid" id="routine-list"></div>
+        </div>
+      </div>
+
+      <!-- Calendar Tab -->
+      <div class="tab-content" id="calendar-tab">
+        <div id="calendar-view" class="card">
+          <div class="calendar" id="calendar"></div>
+        </div>
+        <div id="record-screen" class="hidden">
+          <!-- Record screen will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Routine Modal -->
+  <div class="modal" id="routine-modal">
+    <div class="modal-content">
+      <div class="modal-header">루틴 생성</div>
+
+      <div class="form-group">
+        <label>루틴명</label>
+        <input type="text" id="routine-name" placeholder="예: 3분할 - 등운동">
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">📝 운동 종목</div>
+        <div class="exercise-list" id="exercise-list-modal"></div>
+        <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px;" id="add-exercise-to-routine">➕ 운동 추가</button>
+      </div>
+
+      <div id="add-exercise-form" class="hidden" style="background: var(--gray-100); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+        <div class="card-title" style="margin: 0 0 12px 0; font-size: 14px;">운동 정보</div>
+
+        <div class="form-group">
+          <label>운동 종목</label>
+          <input type="text" id="exercise-name-input" list="exercise-list-datalist" placeholder="예: 랫 풀 다운">
+          <datalist id="exercise-list-datalist"></datalist>
+        </div>
+
+        <div class="form-group">
+          <label>세트 수</label>
+          <input type="number" id="exercise-sets-input" min="1" value="3">
+        </div>
+
+        <div id="set-weight-reps-inputs" style="margin-bottom: 12px;"></div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary" style="flex: 1;" id="cancel-exercise">취소</button>
+          <button class="btn btn-success" style="flex: 1;" id="confirm-exercise">추가</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="routine-cancel">취소</button>
+        <button class="btn btn-primary" id="routine-save">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Routine Detail Modal -->
+  <div class="modal" id="routine-detail-modal">
+    <div class="modal-content">
+      <div class="modal-header" id="routine-detail-title">루틴 상세 정보</div>
+      <div id="routine-detail-content"></div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="routine-detail-delete" style="padding: 10px 16px; margin-right: auto;">🗑️ 삭제</button>
+        <button class="btn btn-secondary" id="routine-detail-close">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise Detail View Modal -->
+  <div class="modal" id="exercise-detail-modal">
+    <div class="modal-content">
+      <div class="modal-header" id="exercise-detail-title">운동 정보</div>
+      <div id="exercise-detail-content"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="exercise-detail-close">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Routine Modal -->
+  <div class="modal" id="load-routine-modal">
+    <div class="modal-content">
+      <div class="modal-header">📂 루틴 불러오기</div>
+      <div id="load-routine-list"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="load-routine-cancel">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load History Modal -->
+  <div class="modal" id="load-history-modal">
+    <div class="modal-content">
+      <div class="modal-header">🕐 이전 기록 불러오기</div>
+      <div id="load-history-list"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="load-history-cancel">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="add-exercise-modal">
+    <div class="modal-content">
+      <div class="modal-header">운동 정보</div>
+      <div style="padding: 0 0 16px 0;">
+        <div class="form-group">
+          <label>운동 종목</label>
+          <input type="text" id="record-exercise-name-input" list="exercise-list-datalist" placeholder="예: 랫 풀 다운">
+        </div>
+        <div class="form-group">
+          <label>세트 수</label>
+          <input type="number" id="record-exercise-sets-input" min="1" value="3">
+        </div>
+        <div id="record-set-weight-reps-inputs"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="add-exercise-cancel">취소</button>
+        <button class="btn btn-primary" id="add-exercise-confirm">추가</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Storage
+    const storage = {
+      get: (key, def) => {
+        try {
+          const item = localStorage.getItem(key);
+          return item ? JSON.parse(item) : def;
+        } catch {
+          return def;
+        }
+      },
+      set: (key, val) => {
+        try {
+          localStorage.setItem(key, JSON.stringify(val));
+        } catch (e) {
+          console.error('Storage error:', e);
+        }
+      }
+    };
+
+    // State
+    let routines = storage.get('routines', []);
+    let records = storage.get('records', {});
+    let selectedDate = new Date();
+    let currentEditingRoutineId = null;
+    let tempExercises = [];
+    let tempSetData = [];
+    let editingExerciseIdx = null;
+    let draftRecord = null;
+    let currentRecordDateStr = null;
+    let tempRecordSetData = [];
+
+    // DOM
+    const navTabs = document.querySelectorAll('.nav-tab');
+    const routineList = document.getElementById('routine-list');
+    const routineModal = document.getElementById('routine-modal');
+    const routineDetailModal = document.getElementById('routine-detail-modal');
+    const exerciseDetailModal = document.getElementById('exercise-detail-modal');
+    const loadRoutineModal = document.getElementById('load-routine-modal');
+    const loadHistoryModal = document.getElementById('load-history-modal');
+    const recordScreen = document.getElementById('record-screen');
+    const calendarView = document.getElementById('calendar-view');
+    const calendar = document.getElementById('calendar');
+
+    // Tab navigation
+    navTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        navTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        const tabId = tab.dataset.tab + '-tab';
+        document.getElementById(tabId).classList.add('active');
+        if (tab.dataset.tab === 'calendar') {
+          renderCalendar();
+        }
+      });
+    });
+
+    // Routine Management
+    function renderRoutineList() {
+      let html = `
+        <div class="add-routine-card" id="add-routine-btn">
+          <div>
+            <div style="font-size: 32px; text-align: center;">➕</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--gray-600);">루틴 추가</div>
+          </div>
+        </div>
+      `;
+
+      routines.forEach((routine, idx) => {
+        const colorClass = `color-${idx % 6}`;
+        html += `
+          <div class="routine-card ${colorClass}" onclick="viewRoutineDetail('${routine.id}')">
+            <div class="routine-name">${routine.routineName}</div>
+            <div class="routine-exercises">
+              ${routine.exercises.map(e => `<div class="routine-exercise-item">• ${e.exerciseName}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      routineList.innerHTML = html;
+      document.getElementById('add-routine-btn').addEventListener('click', () => openRoutineModal());
+    }
+
+    window.viewRoutineDetail = function(routineId) {
+      currentViewingRoutineId = routineId;
+      const routine = routines.find(r => r.id === routineId);
+      let html = `<div style="display: flex; flex-direction: column; gap: 12px;">`;
+
+      routine.exercises.forEach((ex, idx) => {
+        html += `
+          <div class="routine-info-row" onclick="editRoutineFromDetail('${routineId}', ${idx})" style="flex-direction: column; cursor: pointer; align-items: flex-start;">
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+              <div class="routine-info-label">${ex.exerciseName}</div>
+              <div class="routine-info-value">${ex.sets.length}세트</div>
+            </div>
+            <div style="width: 100%; margin-top: 8px; font-size: 11px; color: var(--gray-600);">
+              ${ex.sets.map((s, i) => `세트${i + 1}: ${s.weight}kg × ${s.reps}회`).join(' | ')}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      document.getElementById('routine-detail-title').textContent = routine.routineName;
+      document.getElementById('routine-detail-content').innerHTML = html;
+
+      routineDetailModal.classList.add('active');
+    };
+
+    window.editRoutineFromDetail = function(routineId, exerciseIdx) {
+      routineDetailModal.classList.remove('active');
+      openRoutineModal(routineId);
+      setTimeout(() => {
+        editExerciseFromTemp(exerciseIdx);
+      }, 100);
+    };
+
+    let currentViewingRoutineId = null;
+
+    document.getElementById('routine-detail-close').addEventListener('click', () => {
+      routineDetailModal.classList.remove('active');
+    });
+
+    document.getElementById('routine-detail-delete').addEventListener('click', () => {
+      if (currentViewingRoutineId && confirm('이 루틴을 삭제하시겠습니까?')) {
+        routines = routines.filter(r => r.id !== currentViewingRoutineId);
+        storage.set('routines', routines);
+        routineDetailModal.classList.remove('active');
+        renderRoutineList();
+      }
+    });
+
+    document.getElementById('exercise-detail-close').addEventListener('click', () => {
+      exerciseDetailModal.classList.remove('active');
+    });
+
+    function openRoutineModal(routineId = null) {
+      currentEditingRoutineId = routineId;
+      tempExercises = [];
+      tempSetData = [];
+      editingExerciseIdx = null;
+
+      if (routineId) {
+        const routine = routines.find(r => r.id === routineId);
+        document.getElementById('routine-name').value = routine.routineName;
+        tempExercises = JSON.parse(JSON.stringify(routine.exercises));
+        document.querySelector('#routine-modal .modal-header').textContent = '루틴 수정';
+      } else {
+        document.getElementById('routine-name').value = '';
+        document.querySelector('#routine-modal .modal-header').textContent = '루틴 생성';
+      }
+
+      document.getElementById('add-exercise-form').classList.add('hidden');
+      renderExerciseList();
+      routineModal.classList.add('active');
+    }
+
+    function renderExerciseList() {
+      const listHtml = tempExercises.map((ex, idx) => `
+        <div class="exercise-list-item" onclick="event.stopPropagation(); editExerciseFromTemp(${idx})" style="cursor: pointer;">
+          <div class="exercise-list-info">
+            <div class="exercise-list-name">${ex.exerciseName}</div>
+            <div class="exercise-list-detail">
+              ${ex.sets.map((s, i) => `세트${i + 1}: ${s.weight}kg × ${s.reps}회`).join(' | ')}
+            </div>
+          </div>
+          <div class="exercise-list-actions">
+            <button class="exercise-list-delete" onclick="event.stopPropagation(); removeExerciseFromTemp(${idx})">삭제</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('exercise-list-modal').innerHTML = listHtml || '<div style="color: var(--gray-600); font-size: 12px; padding: 12px; text-align: center;">운동을 추가해주세요</div>';
+    }
+
+    window.viewTempExerciseDetail = function(idx) {
+      const exercise = tempExercises[idx];
+      let detailHtml = `
+        <div style="background: var(--gray-100); padding: 16px; border-radius: 8px;">
+          <div class="routine-info-row" style="flex-direction: column; background: var(--surface);">
+            <div class="routine-info-label">운동명</div>
+            <div class="routine-info-value">${exercise.exerciseName}</div>
+          </div>
+          <div class="routine-info-row" style="flex-direction: column; background: var(--surface); margin-top: 8px;">
+            <div class="routine-info-label">세트 정보</div>
+            <div style="width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+              ${exercise.sets.map((s, i) => `
+                <div style="padding: 8px; background: var(--gray-100); border-radius: 4px; font-size: 13px;">
+                  <strong>세트${i + 1}:</strong> ${s.weight}kg × ${s.reps}회
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('exercise-detail-title').textContent = exercise.exerciseName;
+      document.getElementById('exercise-detail-content').innerHTML = detailHtml;
+      exerciseDetailModal.classList.add('active');
+    };
+
+    window.editExerciseFromTemp = function(idx) {
+      editingExerciseIdx = idx;
+      const exercise = tempExercises[idx];
+      tempSetData = JSON.parse(JSON.stringify(exercise.sets));
+
+      document.getElementById('exercise-name-input').value = exercise.exerciseName;
+      document.getElementById('exercise-sets-input').value = exercise.sets.length;
+      document.getElementById('add-exercise-form').classList.remove('hidden');
+      document.querySelector('#confirm-exercise').textContent = '수정';
+
+      exerciseDetailModal.classList.remove('active');
+      renderSetInputs();
+    };
+
+    window.removeExerciseFromTemp = function(idx) {
+      if (confirm('이 운동을 삭제하시겠습니까?')) {
+        tempExercises.splice(idx, 1);
+        renderExerciseList();
+      }
+    };
+
+    function updateExerciseDatalist() {
+      const allExercises = new Set();
+      routines.forEach(routine => {
+        routine.exercises.forEach(ex => {
+          allExercises.add(ex.exerciseName);
+        });
+      });
+      Object.values(records).forEach(record => {
+        record.exercises.forEach(ex => {
+          allExercises.add(ex.exerciseName);
+        });
+      });
+
+      const datalist = document.getElementById('exercise-list-datalist');
+      datalist.innerHTML = Array.from(allExercises)
+        .map(name => `<option value="${name}">`)
+        .join('');
+    }
+
+    document.getElementById('add-exercise-to-routine').addEventListener('click', () => {
+      tempSetData = [];
+      editingExerciseIdx = null;
+      document.getElementById('exercise-name-input').value = '';
+      document.getElementById('exercise-sets-input').value = '3';
+      document.getElementById('add-exercise-form').classList.remove('hidden');
+      document.querySelector('#confirm-exercise').textContent = '추가';
+      updateExerciseDatalist();
+      renderSetInputs();
+    });
+
+    document.getElementById('exercise-sets-input').addEventListener('input', () => {
+      // 현재 입력된 값 저장
+      document.querySelectorAll('#set-weight-reps-inputs .set-input-row').forEach((row, idx) => {
+        if (!tempSetData[idx]) tempSetData[idx] = {};
+        tempSetData[idx].weight = parseFloat(row.querySelector('.set-weight').value) || 0;
+        tempSetData[idx].reps = parseInt(row.querySelector('.set-reps').value) || 8;
+      });
+
+      const newSets = parseInt(document.getElementById('exercise-sets-input').value) || 1;
+
+      // 세트가 줄어든 경우
+      if (newSets < tempSetData.length) {
+        tempSetData = tempSetData.slice(0, newSets);
+      }
+      // 세트가 늘어난 경우
+      else if (newSets > tempSetData.length) {
+        for (let i = tempSetData.length; i < newSets; i++) {
+          tempSetData[i] = { weight: 0, reps: 8 };
+        }
+      }
+
+      renderSetInputs();
+    });
+
+    function renderSetInputs() {
+      const sets = parseInt(document.getElementById('exercise-sets-input').value) || 1;
+      let html = '';
+      for (let i = 1; i <= sets; i++) {
+        const weight = tempSetData[i - 1]?.weight || 0;
+        const reps = tempSetData[i - 1]?.reps || 8;
+        html += `
+          <div class="set-input-row">
+            <span class="set-label">세트${i}</span>
+            <input type="number" class="set-weight" placeholder="무게" step="1.25" min="0" value="${weight}">
+            <span class="input-unit">kg</span>
+            <input type="number" class="set-reps" placeholder="횟수" min="1" value="${reps}">
+            <span class="input-unit">회</span>
+          </div>
+        `;
+      }
+      document.getElementById('set-weight-reps-inputs').innerHTML = html;
+    }
+
+    document.getElementById('cancel-exercise').addEventListener('click', () => {
+      document.getElementById('add-exercise-form').classList.add('hidden');
+      editingExerciseIdx = null;
+      document.querySelector('#confirm-exercise').textContent = '추가';
+    });
+
+    document.getElementById('confirm-exercise').addEventListener('click', () => {
+      const exerciseName = document.getElementById('exercise-name-input').value.trim();
+      if (!exerciseName) {
+        alert('운동명을 입력해주세요');
+        return;
+      }
+
+      const sets = [];
+      document.querySelectorAll('#set-weight-reps-inputs .set-input-row').forEach(row => {
+        const weight = parseFloat(row.querySelector('.set-weight').value) || 0;
+        const reps = parseInt(row.querySelector('.set-reps').value) || 0;
+        sets.push({ weight, reps });
+      });
+
+      if (editingExerciseIdx !== null) {
+        tempExercises[editingExerciseIdx] = { exerciseName, sets };
+        editingExerciseIdx = null;
+        document.querySelector('#confirm-exercise').textContent = '추가';
+      } else {
+        tempExercises.push({ exerciseName, sets });
+      }
+
+      document.getElementById('add-exercise-form').classList.add('hidden');
+      renderExerciseList();
+    });
+
+    document.getElementById('routine-cancel').addEventListener('click', () => {
+      routineModal.classList.remove('active');
+    });
+
+    document.getElementById('routine-save').addEventListener('click', () => {
+      const routineName = document.getElementById('routine-name').value.trim();
+      if (!routineName) {
+        alert('루틴명을 입력해주세요');
+        return;
+      }
+      if (tempExercises.length === 0) {
+        alert('최소 1개 이상의 운동을 추가해주세요');
+        return;
+      }
+
+      if (currentEditingRoutineId) {
+        const routine = routines.find(r => r.id === currentEditingRoutineId);
+        routine.routineName = routineName;
+        routine.exercises = tempExercises;
+      } else {
+        routines.push({
+          id: Date.now().toString(),
+          routineName,
+          exercises: tempExercises,
+          createdDate: new Date().toISOString()
+        });
+      }
+
+      storage.set('routines', routines);
+      routineModal.classList.remove('active');
+      renderRoutineList();
+    });
+
+    window.editRoutine = function(routineId) {
+      openRoutineModal(routineId);
+    };
+
+    window.deleteRoutine = function(routineId) {
+      if (confirm('루틴을 삭제하시겠습니까?')) {
+        routines = routines.filter(r => r.id !== routineId);
+        storage.set('routines', routines);
+        renderRoutineList();
+      }
+    };
+
+    // Calendar
+    function renderCalendar() {
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startingDayOfWeek = firstDay.getDay();
+
+      let html = `
+        <div class="calendar-header">
+          <button onclick="previousMonth()">◀</button>
+          <div style="font-weight: 700; font-size: 16px;">${year}년 ${month + 1}월</div>
+          <button onclick="nextMonth()">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="weekday">일</div>
+          <div class="weekday">월</div>
+          <div class="weekday">화</div>
+          <div class="weekday">수</div>
+          <div class="weekday">목</div>
+          <div class="weekday">금</div>
+          <div class="weekday">토</div>
+        </div>
+        <div class="calendar-days">
+      `;
+
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+      for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        html += `<div class="calendar-day other-month">${prevMonthLastDay - i}</div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+        const hasRecord = records[dateStr] !== undefined;
+        const record = records[dateStr];
+        const routine = record && record.routineId ? routines.find(r => r.id === record.routineId) : null;
+        const routineName = routine?.routineName || '';
+        const routineIdx = routine ? routines.indexOf(routine) : -1;
+        const colorClass = routine ? `color-${routineIdx % 6}` : '';
+        const totalVolume = record
+          ? record.exercises.reduce((sum, ex) => sum + ex.sets.reduce((s, set) => s + (set.weight || 0), 0), 0)
+          : 0;
+
+        html += `
+          <div class="calendar-day ${isToday ? 'today' : ''}" onclick="selectDate('${dateStr}')">
+            <div class="calendar-day-number">${day}</div>
+            ${hasRecord ? '<div class="calendar-day-indicator">✓</div>' : ''}
+            ${routineName ? `<div class="calendar-routine-name ${colorClass}">${routineName}<span class="calendar-routine-delete" onclick="event.stopPropagation(); deleteRecordFromCalendar('${dateStr}')">✕</span></div>` : ''}
+            ${hasRecord && totalVolume > 0 ? `<div class="calendar-day-volume">총 ${totalVolume.toLocaleString('ko-KR')}kg</div>` : ''}
+          </div>
+        `;
+      }
+
+      const totalCells = Math.ceil((startingDayOfWeek + daysInMonth) / 7) * 7;
+      for (let i = 1; i <= totalCells - startingDayOfWeek - daysInMonth; i++) {
+        html += `<div class="calendar-day other-month">${i}</div>`;
+      }
+
+      html += `</div>`;
+      calendar.innerHTML = html;
+    }
+
+    window.previousMonth = function() {
+      selectedDate.setMonth(selectedDate.getMonth() - 1);
+      renderCalendar();
+    };
+
+    window.nextMonth = function() {
+      selectedDate.setMonth(selectedDate.getMonth() + 1);
+      renderCalendar();
+    };
+
+    window.deleteRecordFromCalendar = function(dateStr) {
+      if (confirm('이 날짜의 운동 기록을 삭제하시겠습니까?')) {
+        delete records[dateStr];
+        storage.set('records', records);
+        renderCalendar();
+      }
+    };
+
+    window.selectDate = function(dateStr) {
+      selectedDate = new Date(dateStr);
+      currentRecordDateStr = dateStr;
+      const saved = records[dateStr];
+      draftRecord = saved ? JSON.parse(JSON.stringify(saved)) : { routineId: null, exercises: [], memo: '' };
+      renderRecordScreen();
+    };
+
+    // Record Screen (renders from draftRecord — nothing here touches `records` until 저장 is clicked)
+    function renderRecordScreen() {
+      const dateStr = currentRecordDateStr;
+      const record = draftRecord;
+      const date = new Date(dateStr);
+      const dateFormatted = date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+
+      let html = `
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="font-size: 18px; font-weight: 700; color: var(--gray-900);">${dateFormatted}</div>
+            <button class="btn btn-secondary" onclick="backToCalendar()">← 돌아가기</button>
+          </div>
+
+          <div class="card-title">📝 오늘의 운동</div>
+          <div id="exercises-display">
+      `;
+
+      if (record.exercises.length === 0) {
+        html += `<div style="text-align: center; padding: 20px; color: var(--gray-600);">아직 운동을 추가하지 않았습니다.</div>`;
+      } else {
+        record.exercises.forEach((ex, exIdx) => {
+          html += `
+            <div class="exercise-item">
+              <div class="exercise-header">
+                <div class="exercise-name">${ex.exerciseName}</div>
+                <button class="exercise-delete" onclick="deleteExerciseRecord(${exIdx})">삭제</button>
+              </div>
+              <div class="set-inputs">
+          `;
+          ex.sets.forEach((set, setIdx) => {
+            html += `
+              <div class="set-input-row">
+                <input type="checkbox" class="set-check" title="세트 완료" ${set.completed ? 'checked' : ''} onchange="updateExerciseSet(${exIdx}, ${setIdx}, 'completed', this.checked)">
+                <span class="set-label">세트${setIdx + 1}</span>
+                <input type="number" value="${set.weight}" step="1.25" onchange="updateExerciseSet(${exIdx}, ${setIdx}, 'weight', this.value)">
+                <span class="input-unit">kg</span>
+                <input type="number" value="${set.reps}" onchange="updateExerciseSet(${exIdx}, ${setIdx}, 'reps', this.value)">
+                <span class="input-unit">회</span>
+                <button class="set-remove-btn" onclick="removeSetFromExercise(${exIdx}, ${setIdx})">−</button>
+              </div>
+            `;
+          });
+          html += `
+              </div>
+              <button class="set-add-btn" onclick="addSetToExercise(${exIdx})">+ 세트 추가</button>
+            </div>
+          `;
+        });
+      }
+
+      html += `
+          </div>
+          <div class="form-group" style="margin-top: 16px;">
+            <button class="btn btn-success" onclick="openLoadRoutineModal()">📂 루틴 불러오기</button>
+            <button class="btn btn-info" onclick="openLoadHistoryModal()">🕐 이전 기록 불러오기</button>
+            <button class="btn btn-secondary" onclick="openAddExerciseRecord()">➕ 운동 추가</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📌 메모</div>
+          <textarea
+            id="memo-input-${dateStr}"
+            style="width: 100%; min-height: 100px; padding: 12px; border-radius: 8px; border: 1px solid var(--gray-300); font-family: inherit;"
+            placeholder="오늘의 운동 컨디션을 메모해주세요."
+          >${record.memo}</textarea>
+        </div>
+
+        <div class="card">
+          <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="completeRecord()">💾 저장</button>
+        </div>
+      `;
+
+      recordScreen.innerHTML = html;
+      recordScreen.classList.remove('hidden');
+      calendarView.classList.add('hidden');
+    }
+
+    window.backToCalendar = function() {
+      draftRecord = null;
+      currentRecordDateStr = null;
+      recordScreen.classList.add('hidden');
+      calendarView.classList.remove('hidden');
+      renderCalendar();
+    };
+
+    window.openLoadRoutineModal = function() {
+      if (routines.length === 0) {
+        alert('먼저 루틴을 생성해주세요');
+        return;
+      }
+
+      let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+      routines.forEach((routine, idx) => {
+        const colorClass = `color-${idx % 6}`;
+        html += `
+          <div class="routine-card ${colorClass}" onclick="loadRoutineIntoDraft('${routine.id}')">
+            <div class="routine-name">${routine.routineName}</div>
+            <div class="routine-exercises">
+              ${routine.exercises.map(e => `<div class="routine-exercise-item">• ${e.exerciseName}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      document.getElementById('load-routine-list').innerHTML = html;
+      loadRoutineModal.classList.add('active');
+    };
+
+    window.loadRoutineIntoDraft = function(routineId) {
+      const routine = routines.find(r => r.id === routineId);
+      const lastRecord = findLastRecord(routineId);
+
+      // 운동 "목록"은 항상 루틴의 현재 정의를 따르고, 세트 "값"만 있으면 최근 기록값으로 대체한다.
+      // (그래야 루틴에 새로 추가된 운동이 예전 기록 때문에 누락되지 않는다)
+      draftRecord.routineId = routineId;
+      draftRecord.exercises = JSON.parse(JSON.stringify(routine.exercises)).map(ex => {
+        const lastEx = lastRecord?.exercises.find(e => e.exerciseName === ex.exerciseName);
+        const sourceSets = lastEx ? lastEx.sets : ex.sets;
+        return {
+          exerciseName: ex.exerciseName,
+          sets: sourceSets.map(s => ({ weight: s.weight, reps: s.reps, completed: false }))
+        };
+      });
+
+      loadRoutineModal.classList.remove('active');
+      renderRecordScreen();
+    };
+
+    function findLastRecord(routineId) {
+      const sortedDates = Object.keys(records).sort().reverse();
+      for (const dateStr of sortedDates) {
+        if (records[dateStr].routineId === routineId && records[dateStr].exercises.length > 0) {
+          return records[dateStr];
+        }
+      }
+      return null;
+    }
+
+    window.openLoadHistoryModal = function() {
+      const dates = Object.keys(records)
+        .filter(d => d !== currentRecordDateStr && records[d].exercises.length > 0)
+        .sort()
+        .reverse();
+
+      if (dates.length === 0) {
+        alert('불러올 이전 기록이 없습니다');
+        return;
+      }
+
+      let html = '<div style="display: flex; flex-direction: column;">';
+      dates.forEach(d => {
+        const rec = records[d];
+        const routine = rec.routineId ? routines.find(r => r.id === rec.routineId) : null;
+        const routineIdx = routine ? routines.indexOf(routine) : -1;
+        const colorClass = `color-${routineIdx % 6}`;
+        const dateLabel = new Date(d).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+
+        html += `
+          <div class="history-item" onclick="loadHistoryIntoDraft('${d}')">
+            <div class="history-item-head">
+              <span class="history-item-date">${dateLabel}</span>
+              ${routine ? `<span class="history-item-routine ${colorClass}">${routine.routineName}</span>` : ''}
+            </div>
+            <div class="history-item-exercises">${rec.exercises.map(e => e.exerciseName).join(', ')}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      document.getElementById('load-history-list').innerHTML = html;
+      loadHistoryModal.classList.add('active');
+    };
+
+    window.loadHistoryIntoDraft = function(dateStr) {
+      const rec = records[dateStr];
+
+      draftRecord.routineId = rec.routineId || null;
+      draftRecord.exercises = JSON.parse(JSON.stringify(rec.exercises)).map(ex => ({
+        ...ex,
+        sets: ex.sets.map(s => ({ weight: s.weight, reps: s.reps, completed: false }))
+      }));
+
+      loadHistoryModal.classList.remove('active');
+      renderRecordScreen();
+    };
+
+    window.openAddExerciseRecord = function() {
+      tempRecordSetData = [];
+      document.getElementById('record-exercise-name-input').value = '';
+      document.getElementById('record-exercise-sets-input').value = '3';
+      updateExerciseDatalist();
+      renderRecordSetInputs();
+      document.getElementById('add-exercise-modal').classList.add('active');
+      document.getElementById('record-exercise-name-input').focus();
+    };
+
+    document.getElementById('record-exercise-sets-input').addEventListener('input', () => {
+      document.querySelectorAll('#record-set-weight-reps-inputs .set-input-row').forEach((row, idx) => {
+        if (!tempRecordSetData[idx]) tempRecordSetData[idx] = {};
+        tempRecordSetData[idx].weight = parseFloat(row.querySelector('.set-weight').value) || 0;
+        tempRecordSetData[idx].reps = parseInt(row.querySelector('.set-reps').value) || 8;
+      });
+
+      const newSets = parseInt(document.getElementById('record-exercise-sets-input').value) || 1;
+
+      if (newSets < tempRecordSetData.length) {
+        tempRecordSetData = tempRecordSetData.slice(0, newSets);
+      } else if (newSets > tempRecordSetData.length) {
+        for (let i = tempRecordSetData.length; i < newSets; i++) {
+          tempRecordSetData[i] = { weight: 0, reps: 8 };
+        }
+      }
+
+      renderRecordSetInputs();
+    });
+
+    function renderRecordSetInputs() {
+      const sets = parseInt(document.getElementById('record-exercise-sets-input').value) || 1;
+      let html = '';
+      for (let i = 1; i <= sets; i++) {
+        const weight = tempRecordSetData[i - 1]?.weight || 0;
+        const reps = tempRecordSetData[i - 1]?.reps || 8;
+        html += `
+          <div class="set-input-row">
+            <span class="set-label">세트${i}</span>
+            <input type="number" class="set-weight" placeholder="무게" step="1.25" min="0" value="${weight}">
+            <span class="input-unit">kg</span>
+            <input type="number" class="set-reps" placeholder="횟수" min="1" value="${reps}">
+            <span class="input-unit">회</span>
+          </div>
+        `;
+      }
+      document.getElementById('record-set-weight-reps-inputs').innerHTML = html;
+    }
+
+    window.confirmAddExercise = function() {
+      const name = document.getElementById('record-exercise-name-input').value.trim();
+      if (!name) {
+        alert('운동명을 입력해주세요');
+        return;
+      }
+
+      const sets = [];
+      document.querySelectorAll('#record-set-weight-reps-inputs .set-input-row').forEach(row => {
+        const weight = parseFloat(row.querySelector('.set-weight').value) || 0;
+        const reps = parseInt(row.querySelector('.set-reps').value) || 0;
+        sets.push({ weight, reps, completed: false });
+      });
+
+      const newExercise = { exerciseName: name, sets };
+      draftRecord.exercises.push(newExercise);
+      document.getElementById('add-exercise-modal').classList.remove('active');
+
+      if (draftRecord.routineId) {
+        const routine = routines.find(r => r.id === draftRecord.routineId);
+        if (routine && confirm('루틴에도 추가할까요?')) {
+          routine.exercises.push(JSON.parse(JSON.stringify(newExercise)));
+          storage.set('routines', routines);
+          alert('루틴에 추가되었습니다');
+        }
+      }
+
+      renderRecordScreen();
+    };
+
+    window.updateExerciseSet = function(exIdx, setIdx, field, value) {
+      if (field === 'completed') {
+        draftRecord.exercises[exIdx].sets[setIdx].completed = value;
+        return;
+      }
+      draftRecord.exercises[exIdx].sets[setIdx][field] = field === 'weight' ? parseFloat(value) : parseInt(value);
+    };
+
+    window.addSetToExercise = function(exIdx) {
+      const sets = draftRecord.exercises[exIdx].sets;
+      const last = sets[sets.length - 1] || { weight: 0, reps: 8 };
+      sets.push({ weight: last.weight, reps: last.reps, completed: false });
+      renderRecordScreen();
+    };
+
+    window.removeSetFromExercise = function(exIdx, setIdx) {
+      const sets = draftRecord.exercises[exIdx].sets;
+      if (sets.length <= 1) {
+        alert('최소 1개의 세트가 필요합니다');
+        return;
+      }
+      sets.splice(setIdx, 1);
+
+      renderRecordScreen();
+    };
+
+    window.deleteExerciseRecord = function(idx) {
+      if (confirm('운동을 삭제하시겠습니까?')) {
+        draftRecord.exercises.splice(idx, 1);
+        renderRecordScreen();
+      }
+    };
+
+    window.completeRecord = function() {
+      const dateStr = currentRecordDateStr;
+
+      if (draftRecord.exercises.length === 0) {
+        alert('오늘의 운동을 1개 이상 추가해주세요');
+        return;
+      }
+
+      const memoInput = document.getElementById(`memo-input-${dateStr}`);
+      if (memoInput) draftRecord.memo = memoInput.value;
+
+      records[dateStr] = draftRecord;
+      storage.set('records', records);
+      alert('저장되었습니다!');
+      backToCalendar();
+    };
+
+    document.getElementById('load-routine-cancel').addEventListener('click', () => {
+      loadRoutineModal.classList.remove('active');
+    });
+
+    document.getElementById('load-history-cancel').addEventListener('click', () => {
+      loadHistoryModal.classList.remove('active');
+    });
+
+    document.getElementById('add-exercise-cancel').addEventListener('click', () => {
+      document.getElementById('add-exercise-modal').classList.remove('active');
+    });
+
+    document.getElementById('add-exercise-confirm').addEventListener('click', () => {
+      confirmAddExercise();
+    });
+
+    document.getElementById('record-exercise-name-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') confirmAddExercise();
+    });
+
+    // Initialize
+    renderRoutineList();
+  </script>
+</body>
+</html>

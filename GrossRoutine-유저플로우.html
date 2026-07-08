@@ -1,0 +1,529 @@
+<title>GrossRoutine — 유저 플로우</title>
+<style>
+  :root {
+    --paper: #F1F3F0;
+    --card: #FEFEFD;
+    --card-border: #DBDDD3;
+    --ink: #171E19;
+    --muted: #5C655D;
+    --muted-2: #838C83;
+
+    --routine: #FF6B35;
+    --routine-wash: #FFF1E9;
+    --record: #1F6F78;
+    --record-wash: #EAF3F2;
+    --decision: #C4881A;
+    --decision-wash: #FBF2E1;
+    --danger: #B23A2E;
+    --danger-wash: #FBEEEC;
+    --brand: #18DB4E;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    line-height: 1.5;
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  /* ---------- Header ---------- */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 28px;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, "Segoe UI", sans-serif;
+  }
+
+  .dek {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  /* ---------- Legend ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .swatch.routine { background: var(--routine); }
+  .swatch.record { background: var(--record); }
+  .swatch.decision { background: none; border: 1.5px dashed var(--decision); }
+  .swatch.danger { background: none; border: 1.5px solid var(--danger); }
+
+  /* ---------- Lane ---------- */
+  .lane {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .lane-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lane-tag {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: #fff;
+  }
+
+  .lane-routine .lane-tag { background: var(--routine); }
+  .lane-record .lane-tag { background: var(--record); }
+
+  .lane-head h2 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .lane-head p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  /* ---------- Track / cards ---------- */
+  .track {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .step {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-left-width: 4px;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 2px rgba(23, 30, 25, 0.04);
+  }
+
+  .lane-routine .step { border-left-color: var(--routine); }
+  .lane-record .step { border-left-color: var(--record); }
+
+  .step-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    margin: 0 0 3px;
+  }
+
+  .step-desc {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .ui-label {
+    display: inline-block;
+    font-size: 11.5px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--paper);
+    border: 1px solid var(--card-border);
+    color: var(--ink);
+  }
+
+  /* connector */
+  .connector {
+    display: flex;
+    justify-content: center;
+    color: var(--muted-2);
+    font-size: 17px;
+    padding: 4px 0;
+    line-height: 1;
+  }
+
+  .connector.tight { padding: 2px 0; }
+
+  /* decision chip */
+  .decision {
+    align-self: center;
+    background: var(--decision-wash);
+    border: 1.5px dashed var(--decision);
+    border-radius: 10px;
+    padding: 10px 16px;
+    text-align: center;
+    max-width: 88%;
+  }
+
+  .decision-eyebrow {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--decision);
+    margin-bottom: 3px;
+  }
+
+  .decision-text {
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+
+  /* branch grid */
+  .branch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .branch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .branch-flag {
+    align-self: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+
+  .branch-flag.yes { background: #E4F1E8; color: #2C7A4B; }
+  .branch-flag.no { background: #F1E9E4; color: #8A5A3A; }
+
+  .step.outcome { padding: 12px 14px; }
+
+  .step.danger { border-left-color: var(--danger); background: var(--danger-wash); }
+  .step.danger .step-title { color: var(--danger); }
+
+  /* draft zone */
+  .draft-zone {
+    position: relative;
+    border: 1.5px dashed var(--record);
+    border-radius: 14px;
+    padding: 30px 18px 18px;
+    background: var(--record-wash);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .draft-zone-label {
+    position: absolute;
+    top: -13px;
+    left: 16px;
+    background: var(--record);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .draft-note {
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .draft-note b { color: var(--record); }
+
+  .parallel-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 620px) {
+    .branch, .parallel-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-head {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--record);
+  }
+
+  footer {
+    border-top: 1px solid var(--card-border);
+    padding-top: 20px;
+    font-size: 12.5px;
+    color: var(--muted-2);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .step { transition: box-shadow 0.15s ease; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">User Flow · 협업 공유용 · v2</p>
+    <h1>GrossRoutine 유저 플로우</h1>
+    <p class="dek">
+      루틴을 등록해두는 <b>루틴 관리</b>와, 그 루틴을 불러와 실제로 기록하는 <b>기록</b>,
+      두 흐름이 어떻게 연결되는지 한 장으로 정리했습니다. 회의·개발 논의 시 화면 흐름 공통 기준으로 사용하세요.
+    </p>
+  </header>
+
+  <section class="legend">
+    <div class="legend-item"><span class="swatch routine"></span>루틴 관리 흐름</div>
+    <div class="legend-item"><span class="swatch record"></span>기록 흐름</div>
+    <div class="legend-item"><span class="swatch decision"></span>확인창 (사용자 판단)</div>
+    <div class="legend-item"><span class="swatch danger"></span>삭제 등 되돌릴 수 없는 동작</div>
+  </section>
+
+  <!-- ENTRY -->
+  <section class="lane">
+    <div class="step" style="border-left-color:#B8BDB6; text-align:center;">
+      <p class="step-title" style="margin:0;">앱 진입 → 상단 탭에서 <span class="ui-label">📋 루틴 관리</span> 또는 <span class="ui-label">📅 기록</span> 선택</p>
+    </div>
+  </section>
+
+  <!-- LANE A: 루틴 관리 -->
+  <section class="lane lane-routine">
+    <div class="lane-head">
+      <span class="lane-tag">Tab · 루틴 관리</span>
+      <h2>📋 루틴을 만들고 다듬는 흐름</h2>
+      <p>운동일마다 새로 입력하지 않도록, 반복해서 쓸 루틴을 미리 등록·수정해두는 화면입니다.</p>
+    </div>
+
+    <div class="track">
+      <div class="step">
+        <p class="step-title">루틴 목록</p>
+        <p class="step-desc">등록된 루틴이 색상별 카드로 표시됩니다. 같은 색이 캘린더 배지·불러오기 목록에서도 동일하게 유지됩니다.</p>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <div class="branch">
+        <div class="branch-col">
+          <div class="step">
+            <p class="step-title"><span class="ui-label">➕ 루틴 추가</span> 카드 클릭</p>
+            <p class="step-desc">빈 루틴 생성 모달이 열립니다.</p>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="step">
+            <p class="step-title">기존 루틴 카드 클릭</p>
+            <p class="step-desc">루틴 상세 팝업 → 운동 항목 클릭 시 <b>바로 수정 모드</b>로 진입 (중간 상세 화면 없음)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <div class="step">
+        <p class="step-title">운동 정보 입력 / 수정</p>
+        <p class="step-desc">운동명(자동완성) · 세트 수 · 세트별 무게·횟수 입력. 세트 수를 바꿔도 이미 입력한 값은 유지됩니다.</p>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <div class="branch">
+        <div class="branch-col">
+          <div class="step">
+            <p class="step-title"><span class="ui-label">저장</span></p>
+            <p class="step-desc">루틴명 + 운동 1개 이상 확인 후 저장, 목록으로 복귀</p>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="step danger">
+            <p class="step-title">🗑 루틴/운동 삭제</p>
+            <p class="step-desc">확인창 → 승인 시에만 삭제</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="connector" style="font-size:13px; color:var(--muted-2);">기록 탭에서는 여기서 만든 루틴을 불러와 사용합니다 ↓</div>
+
+  <!-- LANE B: 기록 -->
+  <section class="lane lane-record">
+    <div class="lane-head">
+      <span class="lane-tag">Tab · 기록</span>
+      <h2>📅 캘린더에서 실제로 기록하는 흐름</h2>
+      <p>날짜를 고르고, 루틴을 불러오거나 직접 운동을 추가해 그날의 운동을 기록합니다.</p>
+    </div>
+
+    <div class="track">
+      <div class="step">
+        <p class="step-title">캘린더 화면</p>
+        <p class="step-desc">기록이 있는 날은 ✓, 루틴을 불러온 날은 루틴 색상 배지, 그 아래엔 그날의 <b>총 볼륨</b>(모든 세트 무게 합산)이 표시됩니다.</p>
+      </div>
+
+      <div class="connector tight">↓</div>
+      <div class="step outcome danger" style="margin-bottom: 2px;">
+        <p class="step-title" style="font-size:13px;">배지의 ✕ 클릭 → 확인창 → 그 날짜 기록 즉시 삭제</p>
+        <p class="step-desc" style="font-size:12px;">날짜 화면에 들어가지 않고 캘린더에서 바로 처리되는 예외 경로</p>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <div class="step">
+        <p class="step-title">날짜 클릭 → "오늘의 운동" 화면 진입</p>
+        <p class="step-desc">여기서부터는 아래 <b>임시 편집본</b> 영역 안에서 모든 조작이 이뤄집니다.</p>
+      </div>
+
+      <div class="connector">↓</div>
+
+      <div class="draft-zone">
+        <span class="draft-zone-label">🗂 임시 편집본 (Draft)</span>
+
+        <div class="draft-note">
+          이 영역 안의 모든 조작은 <b>화면에만</b> 반영됩니다. 실제 데이터는 아래 <span class="ui-label">저장</span>을
+          눌러야만 바뀌고, <span class="ui-label">돌아가기</span>를 누르면 지금까지의 변경은 전부 버려집니다.
+        </div>
+
+        <div class="parallel-actions">
+          <div class="step action-card">
+            <p class="action-head">📂 루틴 불러오기</p>
+            <p class="step-desc">루틴 선택 → 모든 운동을 한번에 표시. <b>운동 목록은 항상 루틴의 최신 정의</b>를 따르고, 무게/횟수 <b>값</b>만 최근 기록이 있으면 우선 반영</p>
+          </div>
+          <div class="step action-card">
+            <p class="action-head">🕐 이전 기록 불러오기</p>
+            <p class="step-desc">실제로 기록했던 과거 날짜 목록(오늘 제외)에서 하루 선택 → 그날의 운동을 통째로 복사. 완료 체크는 항상 초기화</p>
+          </div>
+          <div class="step action-card">
+            <p class="action-head">➕ 운동 추가</p>
+            <p class="step-desc">운동명·세트수·세트별 무게/횟수 입력 후 추가</p>
+          </div>
+          <div class="step action-card">
+            <p class="action-head">✏️ 세트 직접 수정</p>
+            <p class="step-desc">완료 체크박스, 세트별 <b>+ / −</b> 버튼으로 개별 추가·삭제, 무게/횟수 직접 입력, 운동 삭제(확인창)</p>
+          </div>
+        </div>
+
+        <div class="connector">↓</div>
+        <p style="text-align:center; font-size:12px; color:var(--muted); margin:0 0 6px;">
+          "➕ 운동 추가"로 추가한 경우, 오늘 불러온 루틴이 있다면 —
+        </p>
+
+        <div class="decision">
+          <span class="decision-eyebrow">확인창</span>
+          <span class="decision-text">"루틴에도 추가할까요?"</span>
+        </div>
+
+        <div class="connector tight">↓</div>
+
+        <div class="branch">
+          <div class="branch-col">
+            <span class="branch-flag yes">예</span>
+            <div class="step outcome">
+              <p class="step-desc">루틴 원본에도 추가 저장 + "루틴에 추가되었습니다" 알림</p>
+            </div>
+          </div>
+          <div class="branch-col">
+            <span class="branch-flag no">아니오</span>
+            <div class="step outcome">
+              <p class="step-desc">오늘의 운동에만 반영, 루틴 원본은 그대로</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="connector">↓</div>
+
+        <div class="branch">
+          <div class="branch-col">
+            <div class="step">
+              <p class="step-title"><span class="ui-label">💾 저장</span></p>
+              <p class="step-desc">오늘의 운동이 <b>0개면 알림만 뜨고 저장되지 않음</b>. 1개 이상이면 Draft를 실제 기록으로 반영 → 캘린더로 복귀, 배지·볼륨 표시됨</p>
+            </div>
+          </div>
+          <div class="branch-col">
+            <div class="step">
+              <p class="step-title"><span class="ui-label">← 돌아가기</span></p>
+              <p class="step-desc">Draft 폐기, 원래 상태 그대로 캘린더로 복귀</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>GrossRoutine · 기능 명세서 기준 유저 플로우</span>
+    <span class="mono">v2</span>
+  </footer>
+
+</div>

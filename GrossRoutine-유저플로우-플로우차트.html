@@ -1,0 +1,455 @@
+<title>GrossRoutine — 유저 플로우 (플로우차트)</title>
+<style>
+  :root {
+    --paper: #F1F3F0;
+    --card: #FEFEFD;
+    --card-border: #DBDDD3;
+    --ink: #171E19;
+    --muted: #5C655D;
+    --muted-2: #838C83;
+    --brand: #18DB4E;
+
+    --node-rect-fill: #FEFEFD;
+    --node-rect-stroke: #A8AEA2;
+    --node-terminal-fill: #E6F7EA;
+    --node-terminal-stroke: #1FA463;
+    --node-decision-fill: #FBF2E1;
+    --node-decision-stroke: #C4881A;
+    --node-danger-fill: #FBEEEC;
+    --node-danger-stroke: #B23A2E;
+    --edge: #8A9088;
+    --yes: #2C7A4B;
+    --no: #8A5A3A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    line-height: 1.5;
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  }
+
+  .page {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 28px;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, "Segoe UI", sans-serif;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .dek {
+    margin: 0;
+    max-width: 68ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .legend-shape {
+    width: 26px;
+    height: 18px;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .diagram-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .diagram-head p {
+    margin: 4px 0 0;
+    font-size: 13.5px;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+
+  .diagram-frame {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 20px;
+    overflow-x: auto;
+  }
+
+  .diagram-frame svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .node-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 4px 12px;
+  }
+
+  .node-label.tight {
+    font-size: 12px;
+    padding: 2px 10px;
+  }
+
+  .edge-tag {
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  .edge-tag.yes { fill: var(--yes); }
+  .edge-tag.no { fill: var(--no); }
+  .edge-tag.neutral { fill: var(--muted); }
+
+  footer {
+    border-top: 1px solid var(--card-border);
+    padding-top: 20px;
+    font-size: 12.5px;
+    color: var(--muted-2);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">User Flow · Flowchart 표기법 · v1</p>
+    <h1>GrossRoutine 유저 플로우 (다이어그램)</h1>
+    <p class="dek">
+      같은 화면 흐름을 표준 플로우차트 기호(타원 = 시작/종료, 사각형 = 처리 단계, 마름모 = 분기·판단)로 정리했습니다.
+      카드형 문서보다 분기 구조와 종료 지점을 한눈에 파악하기 좋습니다.
+    </p>
+  </header>
+
+  <section class="legend">
+    <div class="legend-item">
+      <svg class="legend-shape" viewBox="0 0 26 18"><ellipse cx="13" cy="9" rx="12" ry="8" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/></svg>
+      시작 / 종료
+    </div>
+    <div class="legend-item">
+      <svg class="legend-shape" viewBox="0 0 26 18"><rect x="2" y="2" width="22" height="14" rx="3" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/></svg>
+      처리 / 화면 단계
+    </div>
+    <div class="legend-item">
+      <svg class="legend-shape" viewBox="0 0 26 18"><polygon points="13,1 25,9 13,17 1,9" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/></svg>
+      분기 / 판단
+    </div>
+    <div class="legend-item">
+      <svg class="legend-shape" viewBox="0 0 26 18"><rect x="2" y="2" width="22" height="14" rx="3" fill="var(--node-danger-fill)" stroke="var(--node-danger-stroke)" stroke-width="1.5"/></svg>
+      삭제 등 되돌릴 수 없는 동작
+    </div>
+  </section>
+
+  <!-- ============ DIAGRAM 1 : 루틴 관리 ============ -->
+  <section class="diagram-section">
+    <div class="diagram-head">
+      <h2>📋 다이어그램 1 · 루틴 관리 흐름</h2>
+      <p>루틴을 새로 만들거나 기존 루틴의 운동 구성을 수정하는 흐름입니다.</p>
+    </div>
+    <div class="diagram-frame">
+      <svg viewBox="0 0 720 1100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow1" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--edge)"/>
+          </marker>
+        </defs>
+
+        <!-- edges -->
+        <path d="M360,84 L360,130" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <path d="M360,186 L360,220" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <path d="M270,300 L170,380" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <path d="M450,300 L550,380" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <text x="185" y="335" class="edge-tag neutral" text-anchor="middle">➕ 추가</text>
+        <text x="535" y="335" class="edge-tag neutral" text-anchor="middle">기존 루틴</text>
+
+        <path d="M170,450 L340,516" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <path d="M550,450 L380,516" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+
+        <path d="M360,576 L360,630" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+
+        <path d="M270,710 L170,790" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <path d="M450,710 L550,790" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <text x="190" y="745" class="edge-tag no" text-anchor="middle">삭제</text>
+        <text x="535" y="745" class="edge-tag yes" text-anchor="middle">저장</text>
+
+        <path d="M170,846 L170,880" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+
+        <path d="M170,936 L345,1000" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+        <path d="M550,860 L378,1000" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow1)"/>
+
+        <!-- START -->
+        <ellipse cx="360" cy="52" rx="120" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="240" y="20" width="240" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label">시작<br/>📋 루틴 관리 탭 진입</div></foreignObject>
+
+        <!-- RECT1 -->
+        <rect x="240" y="130" width="240" height="56" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="240" y="130" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">루틴 목록 표시<br/>(루틴별 고유 색상 카드)</div></foreignObject>
+
+        <!-- DIAMOND1 -->
+        <polygon points="360,220 500,270 360,320 220,270" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/>
+        <foreignObject x="290" y="245" width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">어떤 카드를<br/>클릭했나?</div></foreignObject>
+
+        <!-- RECT 4L / 4R -->
+        <rect x="50" y="380" width="240" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="380" width="240" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">빈 루틴 생성 모달 열기</div></foreignObject>
+
+        <rect x="430" y="380" width="240" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="430" y="380" width="240" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">루틴 상세 팝업 → 운동 항목 클릭 시 바로 수정 모드로 진입</div></foreignObject>
+
+        <!-- RECT merge -->
+        <rect x="240" y="520" width="240" height="56" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="240" y="520" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">운동 정보 입력 / 수정<br/>(운동명 · 세트 수 · 무게 · 횟수)</div></foreignObject>
+
+        <!-- DIAMOND2 -->
+        <polygon points="360,630 500,680 360,730 220,680" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/>
+        <foreignObject x="290" y="655" width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">저장 또는<br/>삭제?</div></foreignObject>
+
+        <!-- LEFT: 삭제 -->
+        <rect x="50" y="790" width="240" height="56" rx="10" fill="var(--node-danger-fill)" stroke="var(--node-danger-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="790" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">확인창 표시</div></foreignObject>
+
+        <rect x="50" y="880" width="240" height="56" rx="10" fill="var(--node-danger-fill)" stroke="var(--node-danger-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="880" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">승인 시 루틴/운동 삭제 처리</div></foreignObject>
+
+        <!-- RIGHT: 저장 -->
+        <rect x="430" y="790" width="240" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="430" y="790" width="240" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">루틴명 + 운동 1개 이상 확인 후 저장</div></foreignObject>
+
+        <!-- END -->
+        <ellipse cx="360" cy="1032" rx="140" ry="34" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="230" y="1000" width="260" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료<br/>루틴 목록으로 복귀</div></foreignObject>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ DIAGRAM 2 : 기록 ============ -->
+  <section class="diagram-section">
+    <div class="diagram-head">
+      <h2>📅 다이어그램 2 · 기록 흐름</h2>
+      <p>캘린더에서 날짜를 골라 그날의 운동을 기록하는 흐름입니다. "운동 추가" 클릭 시의 루틴 반영 여부 분기는 아래 다이어그램 3에서 별도로 다룹니다.</p>
+    </div>
+    <div class="diagram-frame">
+      <svg viewBox="0 0 720 1030" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--edge)"/>
+          </marker>
+        </defs>
+
+        <!-- edges -->
+        <path d="M360,84 L360,130" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <path d="M360,186 L360,220" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <path d="M270,300 L170,380" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <path d="M450,300 L550,380" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <text x="205" y="335" class="edge-tag no" text-anchor="middle">배지 ✕</text>
+        <text x="520" y="335" class="edge-tag yes" text-anchor="middle">날짜 클릭</text>
+
+        <path d="M170,436 L170,470" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <path d="M170,526 L170,560" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+
+        <path d="M550,450 L400,520" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+
+        <!-- self loop for draft box -->
+        <path d="M530,540 C 600,540 600,600 530,600" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <text x="610" y="575" class="edge-tag neutral" text-anchor="middle">반복</text>
+
+        <path d="M360,600 L360,660" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+
+        <path d="M270,740 L170,820" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <path d="M450,740 L550,820" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <text x="195" y="775" class="edge-tag no" text-anchor="middle">돌아가기</text>
+        <text x="535" y="775" class="edge-tag yes" text-anchor="middle">저장</text>
+
+        <path d="M170,876 L170,910" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+        <path d="M550,890 L550,928" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow2)"/>
+
+        <!-- START -->
+        <ellipse cx="360" cy="52" rx="120" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="240" y="20" width="240" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label">시작<br/>📅 기록 탭 진입</div></foreignObject>
+
+        <!-- RECT1 -->
+        <rect x="240" y="130" width="240" height="56" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="240" y="130" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">캘린더 표시<br/>(✓ · 루틴 배지 · 총 볼륨)</div></foreignObject>
+
+        <!-- DIAMOND1 -->
+        <polygon points="360,220 500,270 360,320 220,270" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/>
+        <foreignObject x="290" y="245" width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">무엇을<br/>클릭했나?</div></foreignObject>
+
+        <!-- LEFT: 삭제 경로 -->
+        <rect x="50" y="380" width="240" height="56" rx="10" fill="var(--node-danger-fill)" stroke="var(--node-danger-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="380" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">확인창 표시</div></foreignObject>
+
+        <rect x="50" y="470" width="240" height="56" rx="10" fill="var(--node-danger-fill)" stroke="var(--node-danger-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="470" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">해당 날짜 기록 즉시 삭제</div></foreignObject>
+
+        <ellipse cx="170" cy="592" rx="120" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="560" width="240" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료<br/>캘린더 갱신</div></foreignObject>
+
+        <!-- RIGHT: 날짜 경로 -->
+        <rect x="430" y="380" width="240" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="430" y="380" width="240" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">"오늘의 운동" 화면 진입<br/>(임시 편집본 Draft 생성)</div></foreignObject>
+
+        <!-- DRAFT box -->
+        <rect x="230" y="520" width="300" height="80" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="230" y="520" width="300" height="80"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">Draft 편집 (자유롭게 반복)<br/>📂 루틴 불러오기 · 🕐 이전 기록 불러오기<br/>➕ 운동 추가 · ✏️ 세트 수정</div></foreignObject>
+
+        <!-- DIAMOND2 -->
+        <polygon points="360,660 500,710 360,760 220,710" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/>
+        <foreignObject x="290" y="685" width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">저장 또는<br/>돌아가기?</div></foreignObject>
+
+        <!-- LEFT: 돌아가기 -->
+        <rect x="50" y="820" width="240" height="56" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="820" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">Draft 폐기 (변경사항 버림)</div></foreignObject>
+
+        <ellipse cx="170" cy="942" rx="130" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="40" y="910" width="260" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료<br/>캘린더 복귀 (변경 없음)</div></foreignObject>
+
+        <!-- RIGHT: 저장 -->
+        <rect x="430" y="820" width="240" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="430" y="820" width="240" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">오늘의 운동 1개 이상 확인 후 records에 커밋</div></foreignObject>
+
+        <ellipse cx="550" cy="962" rx="130" ry="34" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="420" y="928" width="260" height="68"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료<br/>캘린더 복귀 (배지·볼륨 반영)</div></foreignObject>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ DIAGRAM 3 : 서브플로우 ============ -->
+  <section class="diagram-section">
+    <div class="diagram-head">
+      <h2>🔀 다이어그램 3 · 서브플로우 — "운동 추가" 시 루틴 반영 여부</h2>
+      <p>다이어그램 2의 "➕ 운동 추가" 액션에서 "추가" 버튼을 눌렀을 때 벌어지는 세부 분기입니다.</p>
+    </div>
+    <div class="diagram-frame">
+      <svg viewBox="0 0 900 780" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow3" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--edge)"/>
+          </marker>
+        </defs>
+
+        <path d="M380,84 L380,130" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <path d="M290,230 L170,290" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <path d="M430,230 L590,290" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <text x="195" y="255" class="edge-tag no" text-anchor="middle">아니오</text>
+        <text x="570" y="255" class="edge-tag yes" text-anchor="middle">예</text>
+
+        <path d="M170,346 L170,380" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <path d="M590,360 L590,410" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+
+        <path d="M500,460 L440,570" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <path d="M680,460 L740,570" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <text x="420" y="510" class="edge-tag no" text-anchor="middle">아니오</text>
+        <text x="740" y="510" class="edge-tag yes" text-anchor="middle">예</text>
+
+        <path d="M440,626 L440,660" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+        <path d="M740,640 L740,672" stroke="var(--edge)" stroke-width="1.6" fill="none" marker-end="url(#arrow3)"/>
+
+        <!-- START -->
+        <ellipse cx="380" cy="52" rx="150" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="230" y="20" width="300" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label">시작<br/>운동 정보 입력 후 "추가" 클릭</div></foreignObject>
+
+        <!-- DIAMOND1 -->
+        <polygon points="380,130 480,180 380,230 280,180" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/>
+        <foreignObject x="310" y="155" width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">오늘 불러온<br/>루틴이 있는가?</div></foreignObject>
+
+        <!-- LEFT: 아니오 -->
+        <rect x="50" y="290" width="240" height="56" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="50" y="290" width="240" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">오늘의 운동에만 반영</div></foreignObject>
+
+        <ellipse cx="170" cy="412" rx="110" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="60" y="380" width="220" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료</div></foreignObject>
+
+        <!-- RIGHT: 예 -->
+        <rect x="470" y="290" width="240" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="470" y="290" width="240" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">확인창: "루틴에도 추가할까요?"</div></foreignObject>
+
+        <!-- DIAMOND2 -->
+        <polygon points="590,410 690,460 590,510 490,460" fill="var(--node-decision-fill)" stroke="var(--node-decision-stroke)" stroke-width="1.5"/>
+        <foreignObject x="520" y="435" width="140" height="50"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">사용자 선택</div></foreignObject>
+
+        <!-- LEFT of D2: 아니오 -->
+        <rect x="330" y="570" width="220" height="56" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="330" y="570" width="220" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">오늘의 운동에만 반영</div></foreignObject>
+
+        <ellipse cx="440" cy="692" rx="110" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="330" y="660" width="220" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료</div></foreignObject>
+
+        <!-- RIGHT of D2: 예 -->
+        <rect x="630" y="570" width="220" height="70" rx="10" fill="var(--node-rect-fill)" stroke="var(--node-rect-stroke)" stroke-width="1.5"/>
+        <foreignObject x="630" y="570" width="220" height="70"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">루틴 원본에도 추가 저장 + "루틴에 추가되었습니다" 알림</div></foreignObject>
+
+        <ellipse cx="740" cy="712" rx="110" ry="32" fill="var(--node-terminal-fill)" stroke="var(--node-terminal-stroke)" stroke-width="1.5"/>
+        <foreignObject x="630" y="680" width="220" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="node-label tight">종료</div></foreignObject>
+      </svg>
+    </div>
+  </section>
+
+  <footer>
+    <span>GrossRoutine · 기능 명세서 기준 유저 플로우 (플로우차트 버전)</span>
+    <span class="mono">v1</span>
+  </footer>
+
+</div>
