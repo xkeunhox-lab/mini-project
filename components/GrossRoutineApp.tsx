@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ExerciseEntry, RecordEntry, RecordsMap, Routine } from "@/lib/types";
-import { cloneExercises, collectAllExerciseNames } from "@/lib/utils";
+import { cloneExercises, collectAllExerciseNames, describeError } from "@/lib/utils";
 import {
   createRoutine,
   deleteRecord,
   deleteRoutine,
   fetchRecords,
   fetchRoutines,
-  incrementCompletions,
   updateRoutine,
   upsertRecord,
 } from "@/lib/api";
@@ -56,9 +55,8 @@ export default function GrossRoutineApp() {
       } catch (e) {
         console.error(e);
         if (!cancelled) {
-          const detail = e instanceof Error ? e.message : String(e);
           setErrorMsg(
-            `데이터를 불러오지 못했습니다. Supabase에 routines/records 테이블이 아직 생성되지 않았거나(database/schema.sql 미실행), 연결 설정이 올바르지 않을 수 있습니다.\n(상세: ${detail})`
+            `데이터를 불러오지 못했습니다. Supabase에 routines/records 테이블이 아직 생성되지 않았거나(database/schema.sql 미실행), 연결 설정이 올바르지 않을 수 있습니다.\n(상세: ${describeError(e)})`
           );
         }
       } finally {
@@ -181,12 +179,6 @@ export default function GrossRoutineApp() {
     try {
       await upsertRecord(toSave);
       setRecords((prev) => ({ ...prev, [currentRecordDate]: toSave }));
-
-      // 누적 기록 횟수 증가는 부가 기능이므로, 실패하더라도 저장 자체는 이미
-      // 성공한 것으로 처리하고 사용자 흐름을 막지 않는다.
-      incrementCompletions().catch((e) =>
-        console.error("누적 기록 횟수 증가에 실패했습니다:", e)
-      );
 
       alert("저장되었습니다!");
       setDraft(null);
