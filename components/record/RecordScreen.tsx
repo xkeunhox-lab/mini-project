@@ -130,7 +130,7 @@ export default function RecordScreen({
       ...prev,
       exercises: prev.exercises.map((ex, i) => {
         if (i !== exIdx) return ex;
-        const last = ex.sets[ex.sets.length - 1] ?? { weight: 0, reps: 8 };
+        const last = ex.sets[ex.sets.length - 1] ?? { weight: 0, reps: 10 };
         return {
           ...ex,
           sets: [
