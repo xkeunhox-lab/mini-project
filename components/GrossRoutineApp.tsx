@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ExerciseEntry, RecordEntry, RecordsMap, Routine } from "@/lib/types";
 import { cloneExercises, collectAllExerciseNames, describeError } from "@/lib/utils";
+import { ensureAnonymousSession } from "@/lib/auth";
 import {
   createRoutine,
   deleteRecord,
@@ -22,6 +23,7 @@ import CalendarView from "./record/CalendarView";
 import RecordScreen from "./record/RecordScreen";
 
 export default function GrossRoutineApp() {
+  const [userId, setUserId] = useState<string | null>(null);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [records, setRecords] = useState<RecordsMap>({});
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,10 @@ export default function GrossRoutineApp() {
 
     async function load() {
       try {
+        const uid = await ensureAnonymousSession();
+        if (cancelled) return;
+        setUserId(uid);
+
         const [routinesData, recordsData] = await Promise.all([
           fetchRoutines(),
           fetchRecords(),
@@ -56,7 +62,7 @@ export default function GrossRoutineApp() {
         console.error(e);
         if (!cancelled) {
           setErrorMsg(
-            `데이터를 불러오지 못했습니다. Supabase에 routines/records 테이블이 아직 생성되지 않았거나(database/schema.sql 미실행), 연결 설정이 올바르지 않을 수 있습니다.\n(상세: ${describeError(e)})`
+            `데이터를 불러오지 못했습니다. Supabase에서 "Anonymous Sign-Ins"가 켜져 있는지, routines/records 테이블이 database/schema.sql 기준으로 생성되어 있는지 확인해주세요.\n(상세: ${describeError(e)})`
           );
         }
       } finally {
@@ -97,6 +103,7 @@ export default function GrossRoutineApp() {
   }
 
   async function handleSaveRoutine(name: string, exercises: ExerciseEntry[]) {
+    if (!userId) return;
     try {
       if (editingRoutine) {
         await updateRoutine(editingRoutine.id, name, exercises);
@@ -108,7 +115,7 @@ export default function GrossRoutineApp() {
           )
         );
       } else {
-        const created = await createRoutine(name, exercises);
+        const created = await createRoutine(userId, name, exercises);
         setRoutines((prev) => [...prev, created]);
       }
       handleCloseRoutineModal();
@@ -167,7 +174,7 @@ export default function GrossRoutineApp() {
   }
 
   async function handleSaveRecord() {
-    if (!draft || !currentRecordDate) return;
+    if (!draft || !currentRecordDate || !userId) return;
 
     if (draft.exercises.length === 0) {
       alert("오늘의 운동을 1개 이상 추가해주세요");
@@ -177,7 +184,7 @@ export default function GrossRoutineApp() {
     const toSave: RecordEntry = { ...draft, date: currentRecordDate };
 
     try {
-      await upsertRecord(toSave);
+      await upsertRecord(userId, toSave);
       setRecords((prev) => ({ ...prev, [currentRecordDate]: toSave }));
 
       alert("저장되었습니다!");
