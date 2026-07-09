@@ -12,6 +12,7 @@ interface RoutineFormModalProps {
   routine: Routine | null; // null = 신규 생성
   allExerciseNames: string[];
   initialEditExerciseIndex?: number | null;
+  startInAddExerciseMode?: boolean;
   onClose: () => void;
   onSave: (routineName: string, exercises: ExerciseEntry[]) => void;
 }
@@ -21,6 +22,7 @@ export default function RoutineFormModal({
   routine,
   allExerciseNames,
   initialEditExerciseIndex = null,
+  startInAddExerciseMode = false,
   onClose,
   onSave,
 }: RoutineFormModalProps) {
@@ -37,12 +39,15 @@ export default function RoutineFormModal({
     if (initialEditExerciseIndex !== null && initialEditExerciseIndex !== undefined) {
       setEditingIndex(initialEditExerciseIndex);
       setFormOpen(true);
+    } else if (startInAddExerciseMode) {
+      setEditingIndex(null);
+      setFormOpen(true);
     } else {
       setEditingIndex(null);
       setFormOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, routine?.id, initialEditExerciseIndex]);
+  }, [open, routine?.id, initialEditExerciseIndex, startInAddExerciseMode]);
 
   function handleAddExerciseClick() {
     setEditingIndex(null);
