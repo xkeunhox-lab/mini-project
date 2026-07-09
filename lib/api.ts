@@ -33,9 +33,6 @@ function rowToRecord(row: RecordRow): RecordEntry {
   };
 }
 
-// 조회(select)는 RLS(auth.uid() = user_id)가 자동으로 본인 데이터만 걸러주므로
-// 여기서 별도로 user_id 필터를 걸지 않아도 된다. 생성(insert)만 user_id를 명시적으로 넣어줘야 한다.
-
 export async function fetchRoutines(): Promise<Routine[]> {
   const { data, error } = await supabase
     .from("routines")
@@ -114,4 +111,3 @@ export async function deleteRecord(date: string): Promise<void> {
   const { error } = await supabase.from("records").delete().eq("date", date);
   if (error) throw error;
 }
-
