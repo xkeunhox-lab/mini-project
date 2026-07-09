@@ -41,7 +41,7 @@ export default function ExerciseEntryForm({
     setSets((prev) => {
       if (count < prev.length) return prev.slice(0, count);
       if (count > prev.length) {
-        const last = prev[prev.length - 1] ?? { weight: 0, reps: 8 };
+        const last = prev[prev.length - 1] ?? { weight: 0, reps: 10 };
         const additions: SetEntry[] = Array.from(
           { length: count - prev.length },
           () => ({ weight: last.weight, reps: last.reps })
