@@ -14,9 +14,9 @@ interface ExerciseEntryFormProps {
 }
 
 const DEFAULT_SETS: SetEntry[] = [
-  { weight: 0, reps: 8 },
-  { weight: 0, reps: 8 },
-  { weight: 0, reps: 8 },
+  { weight: 0, reps: 10 },
+  { weight: 0, reps: 10 },
+  { weight: 0, reps: 10 },
 ];
 
 export default function ExerciseEntryForm({
