@@ -39,6 +39,8 @@ export default function GrossRoutineApp() {
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
   const [routineModalInitialExerciseIdx, setRoutineModalInitialExerciseIdx] =
     useState<number | null>(null);
+  const [routineModalStartInAddMode, setRoutineModalStartInAddMode] =
+    useState(false);
 
   const [detailRoutineId, setDetailRoutineId] = useState<string | null>(null);
 
@@ -89,6 +91,7 @@ export default function GrossRoutineApp() {
   function handleAddRoutineClick() {
     setEditingRoutine(null);
     setRoutineModalInitialExerciseIdx(null);
+    setRoutineModalStartInAddMode(false);
     setRoutineModalOpen(true);
   }
 
@@ -100,6 +103,7 @@ export default function GrossRoutineApp() {
     setRoutineModalOpen(false);
     setEditingRoutine(null);
     setRoutineModalInitialExerciseIdx(null);
+    setRoutineModalStartInAddMode(false);
   }
 
   async function handleSaveRoutine(name: string, exercises: ExerciseEntry[]) {
@@ -130,6 +134,16 @@ export default function GrossRoutineApp() {
     setDetailRoutineId(null);
     setEditingRoutine(detailRoutine);
     setRoutineModalInitialExerciseIdx(index);
+    setRoutineModalStartInAddMode(false);
+    setRoutineModalOpen(true);
+  }
+
+  function handleDetailAddExercise() {
+    if (!detailRoutine) return;
+    setDetailRoutineId(null);
+    setEditingRoutine(detailRoutine);
+    setRoutineModalInitialExerciseIdx(null);
+    setRoutineModalStartInAddMode(true);
     setRoutineModalOpen(true);
   }
 
@@ -281,6 +295,7 @@ export default function GrossRoutineApp() {
         routine={editingRoutine}
         allExerciseNames={allExerciseNames}
         initialEditExerciseIndex={routineModalInitialExerciseIdx}
+        startInAddExerciseMode={routineModalStartInAddMode}
         onClose={handleCloseRoutineModal}
         onSave={handleSaveRoutine}
       />
@@ -290,6 +305,7 @@ export default function GrossRoutineApp() {
         routine={detailRoutine}
         onClose={() => setDetailRoutineId(null)}
         onDelete={handleDeleteRoutine}
+        onAddExercise={handleDetailAddExercise}
         onEditExercise={handleDetailEditExercise}
       />
     </div>
