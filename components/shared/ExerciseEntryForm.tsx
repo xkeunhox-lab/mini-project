@@ -122,6 +122,7 @@ export default function ExerciseEntryForm({
           value={countText}
           onChange={(e) => handleCountChange(e.target.value)}
           onBlur={handleCountBlur}
+          onFocus={(e) => e.target.select()}
           className="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2.5 text-sm text-neutral-900"
         />
       </div>
@@ -210,6 +211,7 @@ function SetRow({
         value={weightText}
         onChange={(e) => handleWeightChange(e.target.value)}
         onBlur={handleWeightBlur}
+        onFocus={(e) => e.target.select()}
         className="w-16 rounded-md border border-neutral-300 bg-neutral-100 px-2 py-1.5 text-sm text-neutral-900"
       />
       <span className="text-xs font-semibold text-neutral-600">kg</span>
@@ -219,6 +221,7 @@ function SetRow({
         value={repsText}
         onChange={(e) => handleRepsChange(e.target.value)}
         onBlur={handleRepsBlur}
+        onFocus={(e) => e.target.select()}
         className="w-16 rounded-md border border-neutral-300 bg-neutral-100 px-2 py-1.5 text-sm text-neutral-900"
       />
       <span className="text-xs font-semibold text-neutral-600">회</span>
