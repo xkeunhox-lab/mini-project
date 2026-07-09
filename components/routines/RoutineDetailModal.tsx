@@ -2,13 +2,14 @@
 
 import type { Routine } from "@/lib/types";
 import Modal from "@/components/shared/Modal";
-import { btnDanger, btnSecondary } from "@/components/shared/buttonStyles";
+import { btnDanger, btnPrimary, btnSecondary } from "@/components/shared/buttonStyles";
 
 interface RoutineDetailModalProps {
   open: boolean;
   routine: Routine | null;
   onClose: () => void;
   onDelete: () => void;
+  onAddExercise: () => void;
   onEditExercise: (index: number) => void;
 }
 
@@ -17,6 +18,7 @@ export default function RoutineDetailModal({
   routine,
   onClose,
   onDelete,
+  onAddExercise,
   onEditExercise,
 }: RoutineDetailModalProps) {
   if (!routine) return null;
@@ -34,6 +36,9 @@ export default function RoutineDetailModal({
             className={`${btnDanger} mr-auto`}
           >
             🗑️ 삭제
+          </button>
+          <button type="button" onClick={onAddExercise} className={btnPrimary}>
+            ➕ 추가
           </button>
           <button type="button" onClick={onClose} className={btnSecondary}>
             닫기
